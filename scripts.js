@@ -1,180 +1,81 @@
-document.addEventListener('DOMContentLoaded', function() {
-  fetch('data/checklists.json')
-    .then(response => response.json())
-    .then(data => {
-      populateChecklists(data);
-    })
-    .catch(error => console.error('Error loading checklists:', error));
-});
+(function () {
+  'use strict';
 
-function populateChecklists(checklists) {
-  var checklistDropdown = document.getElementById('checklist');
-  checklistDropdown.innerHTML = '<option value="">Select a checklist</option>';
+  var questions = [];
+  var currentQuestionIndex = 0;
 
-  checklists.forEach(function(checklist) {
-    var option = document.createElement('option');
-    option.text = checklist.name;
-    option.value = checklist.name;
-    checklistDropdown.add(option);
-  });
+  // This function is called when the page loads
+  window.onload = function () {
+    fetchChecklists();  // Call to fetch checklists
+  };
 
-  // Add event listener to fetch and display questions
-  checklistDropdown.addEventListener('change', function() {
-    var selectedChecklist = checklists.find(c => c.name === checklistDropdown.value);
-    if (selectedChecklist) {
-      displayQuestions(selectedChecklist.questions);
-    }
-  });
-}
+  // Fetch checklists from checklists.json (or an API)
+  function fetchChecklists() {
+    fetch('checklists.json')
+      .then(response => response.json())
+      .then(data => populateChecklists(data))
+      .catch(error => console.error('Error loading checklists:', error));
+  }
 
-function displayQuestions(questions) {
-  var questionsContainer = document.getElementById('questions-container');
-  questionsContainer.innerHTML = '';
-
-  questions.forEach(function(question, index) {
-    var card = createCard(question, index);
-    questionsContainer.appendChild(card);
-  });
-}
-
-function createCard(question, index) {
-  var card = document.createElement('div');
-  card.className = 'card';
-
-  var sectionHeader = document.createElement('h4');
-  sectionHeader.textContent = 'Section: ' + question.section;
-
-  var questionPara = document.createElement('p');
-  questionPara.innerHTML = '<strong>Question:</strong> ' + question.question;
-
-  var labelElement = createLabel(question.label);
-
-  var helpButton = createHelpButton(question.hse);
-
-  var commentTextarea = document.createElement('textarea');
-  commentTextarea.id = 'comment-' + index;
-  commentTextarea.placeholder = 'Leave a comment';
-
-  var btnGroup = createResponseButtons(index);
-
-  var navButtons = createNavigationButtons(index);
-
-  card.appendChild(sectionHeader);
-  card.appendChild(questionPara);
-  card.appendChild(helpButton);
-  card.appendChild(labelElement);
-  card.appendChild(commentTextarea);
-  card.appendChild(btnGroup);
-  card.appendChild(navButtons);
-
-  return card;
-}
-
-function createLabel(labelText) {
-  var labelElement = document.createElement('div');
-  labelElement.className = 'label';
-  labelElement.textContent = labelText || 'No Label'; // Fallback if no label
-  return labelElement;
-}
-
-function createHelpButton(hseRequirement) {
-  var helpButton = document.createElement('button');
-  helpButton.className = 'help-button';
-  helpButton.textContent = '?';
-
-  var popup = createPopup(hseRequirement);
-
-  helpButton.addEventListener('click', function(event) {
-    event.stopPropagation();
-    togglePopup(popup);
-  });
-
-  var container = document.createElement('div');
-  container.style.position = 'relative';
-  container.appendChild(helpButton);
-  container.appendChild(popup);
-
-  return container;
-}
-
-function createPopup(content) {
-  var popup = document.createElement('div');
-  popup.className = 'popup';
-
-  var closeButton = document.createElement('button');
-  closeButton.className = 'close-popup';
-  closeButton.textContent = '×';
-  closeButton.addEventListener('click', function() {
-    popup.style.display = 'none';
-  });
-
-  var popupContent = document.createElement('div');
-  popupContent.className = 'popup-content';
-  popupContent.innerHTML = content;
-
-  popup.appendChild(closeButton);
-  popup.appendChild(popupContent);
-
-  return popup;
-}
-
-function createResponseButtons(index) {
-  var btnGroup = document.createElement('div');
-  btnGroup.className = 'btn-group';
-
-  var responses = ['Completed', 'Not Completed', 'Partially Completed'];
-
-  responses.forEach(function(responseText) {
-    var button = document.createElement('button');
-    button.textContent = responseText;
-    button.addEventListener('click', function() {
-      selectResponse(button, index, responseText);
+  // Populate the dropdown list with checklists
+  function populateChecklists(checklists) {
+    var checklistDropdown = document.getElementById('checklist');
+    checklistDropdown.innerHTML = '<option value="">Select a checklist</option>';
+    
+    checklists.forEach(function (checklist) {
+      var option = document.createElement('option');
+      option.text = checklist.name;
+      option.value = checklist.name;
+      checklistDropdown.add(option);
     });
 
-    btnGroup.appendChild(button);
-  });
+    checklistDropdown.addEventListener('change', function () {
+      fetchQuestions(this.value, checklists);  // Fetch questions when a checklist is selected
+    });
+  }
 
-  return btnGroup;
-}
+  // Fetch the questions for the selected checklist
+  function fetchQuestions(selectedChecklist, checklists) {
+    questions = checklists.find(checklist => checklist.name === selectedChecklist)?.questions || [];
+    currentQuestionIndex = 0;
+    showQuestion(currentQuestionIndex);
+    updateProgressBar();
+  }
 
-function selectResponse(selectedButton, index, status) {
-  var buttons = selectedButton.parentNode.getElementsByTagName('button');
-  Array.prototype.forEach.call(buttons, function(button) {
-    button.classList.remove('selected');
-  });
+  // Show a single question (card view)
+  function showQuestion(index) {
+    var questionsContainer = document.getElementById('questions-container');
+    questionsContainer.innerHTML = '';  // Clear any existing content
 
-  selectedButton.classList.add('selected');
-}
+    if (questions.length === 0 || index >= questions.length) {
+      return;  // No questions to show
+    }
 
-function createNavigationButtons(index) {
-  var navButtons = document.createElement('div');
-  navButtons.className = 'nav-buttons';
+    var questionData = questions[index];
 
-  var backButton = document.createElement('button');
-  backButton.innerText = 'Back';
-  backButton.disabled = (index === 0);
-  backButton.addEventListener('click', function() {
-    navigate(-1);
-  });
+    // Create the card element
+    var card = document.createElement('div');
+    card.className = 'card';
 
-  var nextButton = document.createElement('button');
-  nextButton.innerText = 'Next';
-  nextButton.disabled = (index === questions.length - 1);
-  nextButton.addEventListener('click', function() {
-    navigate(1);
-  });
+    // Create and append the section header
+    var sectionHeader = document.createElement('h4');
+    sectionHeader.textContent = 'Section: ' + questionData.section;
+    card.appendChild(sectionHeader);
 
-  navButtons.appendChild(backButton);
-  navButtons.appendChild(nextButton);
+    // Create and append the question text
+    var questionPara = document.createElement('p');
+    questionPara.innerHTML = '<strong>Question:</strong> ' + questionData.question;
+    card.appendChild(questionPara);
 
-  return navButtons;
-}
+    // Add buttons, label, and navigation as needed...
 
-function navigate(step) {
-  currentQuestionIndex += step;
-  showQuestion(currentQuestionIndex);
-}
+    questionsContainer.appendChild(card);  // Append the card to the container
+  }
 
-function togglePopup(popupElement) {
-  popupElement.style.display = (popupElement.style.display === 'block') ? 'none' : 'block';
-}
+  // Update the progress bar
+  function updateProgressBar() {
+    var progress = document.getElementById('progress');
+    var percentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+    progress.style.width = percentage + '%';
+  }
+})();
