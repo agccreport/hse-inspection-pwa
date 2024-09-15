@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Safety Checklist",
+    "questions": [
+      {
+        "section": "General Safety",
+        "question": "Are workers wearing proper PPE?",
+        "hse": "Ensure compliance with PPE regulations.",
+        "label": "High Priority"
+      },
+      {
+        "section": "Equipment Safety",
+        "question": "Are all machines inspected?",
+        "hse": "Follow equipment inspection procedures.",
+        "label": "Medium Priority"
+      }
+    ]
+  },
+  {
+    "name": "Equipment Inspection",
+    "questions": [
+      {
+        "section": "Heavy Machinery",
+        "question": "Are all safety measures followed?",
+        "hse": "Adhere to the machinery safety guidelines.",
+        "label": "Critical"
+      }
+    ]
+  }
+]

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Inspection Checklist</title>
+
+    <!-- Link to the manifest file -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Meta tags for theme and background colors -->
+    <meta name="theme-color" content="#007BFF">
+    <meta name="background-color" content="#ffffff">
+
+    <!-- Link to your styles -->
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h2>HSE Inspection Checklist</h2>
+
+      <!-- Dropdown to select checklist -->
+      <label for="checklist">Select Checklist:</label>
+      <select id="checklist">
+        <option value="">Loading...</option>
+      </select>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar">
+        <div id="progress" class="progress"></div>
+      </div>
+
+      <!-- Container for checklist questions -->
+      <div id="questions-container"></div>
+    </div>
+
+    <!-- Link to your scripts -->
+    <script src="scripts.js"></script>
+
+    <!-- Register the service worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/service-worker.js')
+          .then(function (registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(function (error) {
+            console.log('Service Worker registration failed:', error);
+          });
+      }
+    </script>
+  </body>
+</html>
